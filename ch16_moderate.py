@@ -1,5 +1,6 @@
 from bisect import bisect
 from collections import defaultdict
+from dataclasses import dataclass, field
 
 
 def numberswapper(n1, n2):
@@ -249,6 +250,136 @@ def sizeponds(topologymap):
     return ponds
 
 
+def bigger(array1, array2):
+    if len(array2) > len(array1):
+        return array2, array1
+    else:
+        return array1, array2
+
+
+def sumswap(array1, array2):
+    biggerarray, smallerarray = bigger(array1, array2)
+    difference = sum(biggerarray) - sum(smallerarray)
+
+    if difference % 2 == 1:
+        return "Impossible"
+
+    biggernums = {}
+    for n in biggerarray:
+        biggernums[n] = True
+
+    for n in smallerarray:
+        if (n + difference // 2) in biggernums:
+            return (n, n + difference // 2)
+
+    return "Impossible"
+
+
+@dataclass
+class letternode:
+    letter: str
+    children: dict = field(default_factory=dict)
+
+    def insertword(self, word):
+        cursor = self
+        for char in word:
+            if char not in cursor.children:
+                cursor.children[char] = letternode(char)
+            cursor = cursor.children[char]
+        return self
+
+
+def generatetrie(words):
+    trie = letternode("*")
+    for word in words:
+        trie.insertword(word)
+    return trie
+
+
+def numbertoletters(number):
+    conversion = {
+        "2": ["a", "b", "c"],
+        "3": ["d", "e", "f"],
+        "4": ["g", "h", "i"],
+        "5": ["j", "k", "l"],
+        "6": ["m", "n", "o"],
+        "7": ["p", "q", "r", "s"],
+        "8": ["t", "u", "v"],
+        "9": ["w", "x", "y", "z"],
+    }
+    return conversion[number]
+
+
+def searchtrie(corpus, input, assembly, solutions=[]):
+    if input == "":
+        solutions.append(assembly)
+        return solutions
+
+    for char in numbertoletters(input[0]):
+        if char in corpus.children:
+            searchtrie(corpus.children[char], input[1:], assembly + char)
+
+    return solutions
+
+
+def t9(input):
+    words = [
+        "apple",
+        "about",
+        "asked",
+        "ask",
+        "bake",
+        "big",
+        "blue",
+        "book",
+        "box",
+        "burn",
+        "buy",
+        "cake",
+        "call",
+        "cold",
+        "come",
+        "copy",
+        "day",
+        "desk",
+        "dog",
+        "door",
+        "down",
+        "draw",
+        "drink",
+        "drive",
+        "easy",
+        "eat",
+        "egg",
+        "end",
+        "far",
+        "fast",
+        "feed",
+        "few",
+        "fire",
+        "fish",
+        "five",
+        "fix",
+        "flag",
+        "flat",
+        "fly",
+        "food",
+        "foot",
+        "four",
+        "free",
+        "from",
+        "full",
+        "gain",
+        "game",
+        "get",
+        "give",
+        "tree",
+        "used",
+    ]
+    corpus = generatetrie(words)
+    return searchtrie(corpus, str(input), "")
+
+
 if __name__ == "__main__":
     # print(numberswapper(5,9))
     # print(tictactoe_won([[1,2,1],[0,1,0],[2,0,2]]))
@@ -264,4 +395,7 @@ if __name__ == "__main__":
     # print(subsort([1,2,4,7,10,11,7,12,6,7,16,18,19]))
     # print(contiguoussequence([2,-8,3,-2,4,-10,6,-100,14,2]))
     # print(contiguoussequence([-7,-8,-3,-2,-4,-10]))
-    print(sizeponds([[0, 2, 1, 0], [0, 1, 0, 1], [1, 1, 0, 1], [0, 1, 0, 1]]))
+    # print(sizeponds([[0, 2, 1, 0], [0, 1, 0, 1], [1, 1, 0, 1], [0, 1, 0, 1]]))
+    # print(sumswap([4,1,2,1,1,2], [2,60,3,3]))
+    # print(t9(2665))
+    pass

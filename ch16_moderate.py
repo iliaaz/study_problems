@@ -1,4 +1,5 @@
 from bisect import bisect
+from collections import defaultdict
 
 
 def numberswapper(n1, n2):
@@ -53,8 +54,144 @@ def smallestdifference(arr1, arr2):
     return smallestdifference
 
 
+def trickmax(n1, n2):
+    return [n1, n2][(int(n1 - n2) - abs(n1 - n2)) // (abs(n1 - n2) ** abs(n1 - n2))]
+
+
+def matches_pattern(pattern, value):
+    count_first = pattern.count(pattern[0])
+    pattern_first = pattern[0]
+    if pattern[0] == 'a':
+        pattern_second = 'b'
+        count_second = pattern.count('b')
+    else:
+        pattern_second = 'a'
+        count_second = pattern.count('a')
+
+    print(pattern_first, count_first, pattern_second, count_second)
+
+    maxlength_first = (len(value) - count_second) // count_first
+    for i in range(1, maxlength_first+1):
+        firstword = value[:i]
+
+        firstword_occurances = value.count(firstword)
+        print(firstword, firstword_occurances)
+        if firstword_occurances != count_first:
+            continue
+        
+        subvalue = value.replace(firstword,"")
+        print(subvalue)
+        if subvalue == "":
+            return True
+        elif len(subvalue) % count_second != 0:
+                continue
+
+        secondword = subvalue[:(len(subvalue) // count_second)]
+
+        candidate = ""
+        for char in pattern:
+            if char == pattern_first:
+                candidate += firstword
+            else:
+                candidate += secondword
+
+        print(f"Candidate: {candidate}")
+        if candidate == value:
+            return True
+
+    return False
+
+
+def divingboard(length1, length2, planks):
+    possiblelengths = set()
+    for n in range(planks+1):
+        possiblelengths.add(length1 * n + length2 * (planks - n))
+    return sorted(list(possiblelengths))
+
+
+def divingboard_recursive(length1, length2, planks, state, visited = {}, possiblelengths = set()):
+    if state in visited:
+        return
+    else:
+        visited[state] = True
+
+    if state[0] + state[1] == planks:
+        possiblelengths.add(state[0] * length1 + state[1] * length2)
+        return
+
+    divingboard_recursive(length1, length2, planks, (state[0]+1, state[1]))
+    divingboard_recursive(length1, length2, planks, (state[0], state[1]+1))
+
+    return sorted(list(possiblelengths))
+
+
+def maxlivingpeople(livesinfo):
+    lifevectors = defaultdict(int)
+    for lifeinfo in livesinfo:
+        lifevectors[lifeinfo[0]] += 1
+        lifevectors[lifeinfo[1]+1] -= 1
+
+    maxaliveyear = None
+    maxalive = 0
+    alivecounter = 0
+    for year in sorted(list(lifevectors)):
+        alivecounter += lifevectors[year]
+        if alivecounter > maxalive:
+            maxalive = alivecounter
+            maxaliveyear = year
+    return maxaliveyear
+
+
+def bestline(points):
+    slopesfromapoint = defaultdict(dict)
+
+    maxslopes = 0
+    
+    for i in range(len(points)):
+        for j in range(i+1, len(points)):
+            if (points[j][0]-points[i][0]) != 0:
+                slope = (points[j][1]-points[i][1])/(points[j][0]-points[i][0])
+            else:
+                slope = "inf"
+            if slope in slopesfromapoint[i]:
+                slopesfromapoint[i][slope] += 1
+            else:
+                slopesfromapoint[i][slope] = 1
+            if slopesfromapoint[i][slope] > maxslopes:
+                maxslopes = slopesfromapoint[i][slope]
+                solution = [points[i],points[j]]
+    return solution
+
+
+def subsort(array):
+
+    smallestsortedindex = 0
+    maxthusfar = 0
+    for i, n in enumerate(array):
+        maxthusfar = max(maxthusfar, n)
+        if n != maxthusfar:
+            smallestsortedindex = min(len(array)-1,i)
+
+    greatestsortedindex = len(array)-1
+    minthusfar = 9999999
+    for i in range(len(array)-1, -1, -1):
+        minthusfar = min(minthusfar, array[i])
+        if array[i] != minthusfar:
+            greatestsortedindex = max(0, i)
+
+    return greatestsortedindex, smallestsortedindex 
+
+
 if __name__ == "__main__":
     # print(numberswapper(5,9))
     # print(tictactoe_won([[1,2,1],[0,1,0],[2,0,2]]))
     # print(factorialzeros(29))
-    print(smallestdifference([1,3,15,11,2],[23,127,235,19,8]))
+    # print(smallestdifference([1,3,15,11,2],[23,127,235,19,8]))
+    # print(trickmax(1, 2))
+    # print(matches_pattern("abab", "arfdogarfdog"))
+    # print(matches_pattern("bbaba", "catcatgocatgo")) 
+    # print(divingboard(3,5,3))
+    # print(divingboard_recursive(3, 5, 3, (0,0)))
+    # print(maxlivingpeople([[1921, 1976],[1911, 1959],[1957, 1987]]))
+    # print(bestline([[1,1],[2,2],[3,3],[4,4],[1,4],[2,3],[3,5]]))
+    print(subsort([1,2,4,7,10,11,7,12,6,7,16,18,19]))

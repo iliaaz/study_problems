@@ -1,6 +1,8 @@
 from bisect import bisect
-from collections import defaultdict
+from collections import defaultdict, Counter
 from dataclasses import dataclass, field
+import random
+import heapq
 
 
 def numberswapper(n1, n2):
@@ -380,6 +382,95 @@ def t9(input):
     return searchtrie(corpus, str(input), "")
 
 
+def turn(direction, rotation):
+    return (direction + rotation) % 4
+
+
+def move(pos_y, pos_x, direction):
+    if direction == 0:
+        return pos_y - 1, pos_x
+    if direction == 1:
+        return pos_y, pos_x + 1
+    if direction == 2:
+        return pos_y + 1, pos_x
+    if direction == 3:
+        return pos_y, pos_x - 1
+
+
+def langstonant(k):
+    grid = defaultdict(lambda: defaultdict(bool))
+    direction = 1
+    pos_x = 0
+    pos_y = 0
+    max_x = 0
+
+    for _ in range(k):
+        grid[pos_y][pos_x] ^= True
+        direction = turn(direction, [-1, 1][grid[pos_y][pos_x]])
+        pos_y, pos_x = move(pos_y, pos_x, direction)
+        if pos_x > max_x:
+            max_x = pos_x
+
+    for row in grid.values():
+        output = []
+        for i in range(-max_x, max_x+1):
+            output.append(["W", "B"][row[i]])
+        print(output)
+
+
+def rand7():
+    # return sum([random.randint(0,5) for _ in range(7)]) % 7
+
+    while True:
+        candidate = random.randint(0, 4)*5 + random.randint(0, 4)
+        if candidate < 21:
+            return candidate % 7
+
+
+def pairswithsum(array, k):
+    solutions = []
+    c = Counter()
+    for n in array:
+        c[n] += 1
+    for value, count in c.items():
+        if k - value == value:
+            for _ in range(count - 1):
+                solutions.append((value, value))
+        elif k - value in c and k - value > value:
+            for _ in range(count * c[k - value]):
+                solutions.append((value, k - value))
+    return solutions
+
+
+@dataclass
+class LRUcache:
+    maxsize: int
+    memory: dict = field(default_factory=dict)
+    history: list = field(default_factory=list)
+    time: int = 0
+
+    def insert(self, key, value):
+        self.time += 1
+
+        usage = [self.time, key, True]
+        if self.memory and len(self.memory) >= self.maxsize:
+            lastused = heapq.heappushpop(self.history, usage)
+            while not lastused[2]:
+                lastused = heapq.heappushpop(self.history, usage)
+            del self.memory[lastused[1]]
+        else:
+            heapq.heappush(self.history, usage)
+        self.memory[key] = [value, usage]
+
+    def read(self, key):
+        self.time += 1
+        self.memory[key][1][2] = False
+        usage = [self.time, key, True]
+        self.memory[key][1] = usage
+        heapq.heappush(self.history, usage)
+        return self.memory[key][0]
+
+
 if __name__ == "__main__":
     # print(numberswapper(5,9))
     # print(tictactoe_won([[1,2,1],[0,1,0],[2,0,2]]))
@@ -398,4 +489,19 @@ if __name__ == "__main__":
     # print(sizeponds([[0, 2, 1, 0], [0, 1, 0, 1], [1, 1, 0, 1], [0, 1, 0, 1]]))
     # print(sumswap([4,1,2,1,1,2], [2,60,3,3]))
     # print(t9(2665))
+    # langstonant(61)
+
+    # c = Counter()
+    # for _ in range(int(1E5)):
+    #     c.update(str(rand7()))
+    # print(c)
+
+    # print(pairswithsum([5,1,3,5,4,1,2,7,6], 7))
+
+    # cache = LRUcache(3)
+    # cache.insert("ellen", 36)
+    # cache.insert("mischa", 42)
+    # cache.insert("bronwen", 37)
+    # cache.read("ellen")
+    # cache.insert("frances", 73)
     pass
